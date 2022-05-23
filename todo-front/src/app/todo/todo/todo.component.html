@@ -1,0 +1,12 @@
+<mat-card style="width: 100%;">
+    <mat-card-title>{{todo?.title}}</mat-card-title>
+    <mat-card-subtitle>{{todo?.createdAt | date:'medium'}}</mat-card-subtitle>
+    <mat-card-content>
+{{todo?.content}}
+    </mat-card-content>
+    <button type="submit" mat-raised-button color="accent" routerLink="todo/{{todo?.id}}">Edit</button>
+
+    <mat-card-footer class="p-2" *ngIf="todo?.todosTags?.nodes.length > 0">
+        <span *ngFor="let tag of todo?.todosTags?.nodes" class="badge badge-primary ml-2">{{tag.tag.name}}</span>
+    </mat-card-footer>
+</mat-card>

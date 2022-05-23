@@ -1,0 +1,14 @@
+<div class="container todo-list-container" cdkDropListGroup>
+    <div *ngFor="let status of todoStatus" class="todo-container">
+        <h2>{{status}}</h2>
+
+
+        <div cdkDropList [cdkDropListData]="filteredData[status]" class="todo-list"
+             (cdkDropListDropped)="drop($event, status)" >  
+
+            <app-todo class="todo-item" *ngFor="let todo of filteredData[status]" [todo]="todo" cdkDrag></app-todo>
+
+        </div>
+    </div>
+
+</div> 

@@ -1,0 +1,28 @@
+<div class="container mt-3">
+    <form class="d-flex flex-column" [formGroup]="todoForm" >
+        <mat-form-field hintLabel="Max 25 characters" appearance="fill" class="mb-3">
+            <mat-label>Title</mat-label>
+            <input matInput #input maxlength="25" formControlName="title">
+            <mat-hint align="end">{{input.value?.length || 0}}/25</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+            <mat-label>Content</mat-label>
+            <textarea matInput formControlName="content" ></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="w-50">
+            <mat-label>Todo Tags</mat-label>
+            <mat-select formControlName="tags" multiple>
+                <mat-option *ngFor="let tag of tags" [value]="tag.id">{{tag.name}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <button *ngIf="!todo" type="submit" class="w-50" mat-raised-button (click)="onSubmit()" color="accent">Enregistrer</button>
+        <button *ngIf="todo" type="button" class="w-50"  mat-raised-button (click)="onUpdate()"
+            color="accent">Modifier</button>
+
+    </form>
+
+</div>

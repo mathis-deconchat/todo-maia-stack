@@ -1,0 +1,11 @@
+_format_version: "2.1"
+_transform: true
+
+services:
+- name: API
+  url: https://192.168.31.27:3000
+  routes:
+  - name: api-route
+    paths:
+    - /api
+    strip-path : true

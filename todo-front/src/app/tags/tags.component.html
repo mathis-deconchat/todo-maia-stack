@@ -1,0 +1,15 @@
+<div class="container mt-3">
+    <form class="d-flex flex-column" [formGroup]="tagForm" >
+
+        <mat-form-field appearance="fill">
+            <mat-label>Name</mat-label>
+            <textarea matInput formControlName="name" ></textarea>
+        </mat-form-field>
+
+
+        <button type="submit" class="w-50" mat-raised-button (click)="onSubmit()" color="accent">Enregistrer</button>
+
+
+    </form>
+
+</div>

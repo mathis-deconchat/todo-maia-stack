@@ -1,0 +1,118 @@
+version: '3.4'
+
+networks: 
+  todo-net:
+
+volumes:
+  keycloak-db:
+  todo-db-vol:
+
+services:
+  kong:
+    build:
+      context: ./todo-kong
+    # depends_on:
+    #   - kong-db
+    network_mode: 'host'
+    user: root
+    expose: 
+    - 80 
+    - 8001 
+    - 443 
+    - 8444
+
+    environment:
+      KONG_DATABASE:         "off"
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG:  /dev/stderr
+      KONG_ADMIN_ERROR_LOG:  /dev/stderr
+      KONG_PROXY_LISTEN:     0.0.0.0:80, 0.0.0.0:443 ssl
+      KONG_ADMIN_LISTEN:     0.0.0.0:8001, 0.0.0.0:8444 ssl
+      KONG_LOG_LEVEL:        debug
+      KONG_PLUGINS: bundled, oidc-webinage, http-log
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://kong:8001"]
+      interval: 5s
+      timeout: 2s
+      retries: 15
+
+  keycloak-db:
+      image: postgres
+      volumes:
+        - keycloak-db:/var/lib/postgresql/data
+      networks:
+      - todo-net
+      environment:
+        POSTGRES_DB: keycloak
+        POSTGRES_USER: keycloak
+        POSTGRES_PASSWORD: password
+      healthcheck:
+        test: ["CMD", "pg_isready", "-U", "postgres"]
+        interval: 5s
+        timeout: 5s
+        retries: 5
+
+  ##############################################
+  # Keycloak : Identity manager
+  ############################################## 
+  keycloak:
+      image: quay.io/keycloak/keycloak:legacy      
+      env_file: config/keycloak.env
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:8081/auth/"]
+        interval: 5s
+        timeout: 2s
+        retries: 15
+      ports:
+        - 8081:8080
+      networks:
+      - todo-net
+      depends_on:
+      - keycloak-db
+
+##############################################
+# Postgres : Database for todos
+############################################## 
+  todo-db:
+    container_name: todo_db_container
+    build:
+      context: ./todo-conception
+    env_file: config/todo.pg.env
+    volumes:
+      - todo-db-vol:/var/lib/postgresql/data
+      - ./config/postgresql.conf:/etc/postgresql.conf
+    ports:
+      - "25532:5432"
+    networks:
+      - todo-net
+    command: postgres -c config_file=/etc/postgresql.conf
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+##############################################
+# Front : Nginx
+############################################## 
+  todo-front:
+    build:
+      context: ./todo-front
+    ports:
+      - "6969:80"
+    networks:
+      - todo-net
+
+##############################################
+# Back : postgraphile
+############################################## 
+  todo-postgraphile:
+    build:
+      context: ./todo-postgraphile
+    environment:
+      URL: postgres://postgres:password@todo-db:5432/conception_todo
+      SCHEMA_NAMES: todo_public
+    ports:
+      - "6060:6060"
+    networks:
+      - todo-net

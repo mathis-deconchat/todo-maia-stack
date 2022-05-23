@@ -1,0 +1,126 @@
+_format_version: "2.1"
+_transform: true
+
+
+services:
+
+
+# Random template route
+- name : random
+  url: http://google.com
+  routes: 
+  - name : random-route
+    paths: 
+    - /random
+
+# API
+- name: API
+  url: http://localhost:6060
+  port: 6060
+  protocol: http
+  connect_timeout: 60000
+  routes:
+  - name: api-route
+    paths: 
+    - "/api"
+    methods: [POST, GET]
+    path_handling : v1
+    strip_path: true
+    protocols: [http]
+  plugins :
+  - name : oidc-webinage
+    config: 
+      filters:
+      client_id: kong
+      ssl_verify: 'no'
+      introspection_endpoint:
+      SESSION_CONTENTS_ID_TOKEN: true
+      timeout:
+      SESSION_CONTENTS_USER: false
+      discovery: http://localhost:8081/auth/realms/todo/.well-known/openid-configuration
+      client_secret: uAfQSPwaCZeCA1ioM3BPxDqp2LmDh3QB
+      redirect_uri_path:
+      token_endpoint_auth_method: client_secret_post
+      logout_path: 
+      recovery_page_path:
+      session_secret:
+      POST_LOGOUT_REDIRECT_URI: 
+      bearer_only: 'no'
+      introspection_endpoint_auth_method:
+      SESSION_CONTENTS_ACCESS_TOKEN: false
+      response_type: code
+      redirect_after_logout_uri:
+      scope: openid
+      realm: test
+      DO_NOT_REDIRECT: false
+
+
+# FRONT
+- name : FRONT
+  url: http://localhost:6969
+  protocol: http
+  connect_timeout: 60000
+  routes: 
+  # Front-route
+  - name: front-route
+    path_handling : v1
+    strip_path: true
+    protocols: [http]
+    methods : [GET]
+    plugins : 
+    - name : oidc-webinage
+      config : 
+        filters:
+        client_id: kong
+        ssl_verify: 'no'
+        introspection_endpoint:
+        SESSION_CONTENTS_ID_TOKEN: true
+        timeout:
+        SESSION_CONTENTS_USER: false
+        discovery: http://localhost:8081/auth/realms/todo/.well-known/openid-configuration
+        client_secret: uAfQSPwaCZeCA1ioM3BPxDqp2LmDh3QB
+        redirect_uri_path:
+        token_endpoint_auth_method: client_secret_post
+        logout_path: logout
+        recovery_page_path:
+        session_secret:
+        POST_LOGOUT_REDIRECT_URI: http://google.com/
+        bearer_only: 'no'
+        introspection_endpoint_auth_method:
+        SESSION_CONTENTS_ACCESS_TOKEN: false
+        response_type: code
+        redirect_after_logout_uri: http://google.com/
+        scope: openid
+        realm: test
+        DO_NOT_REDIRECT: false
+
+  # Lougout route for OIDC plugin mapping  
+  - name: logout
+    paths : 
+    - /logout
+    strip_path: false
+    protocols: [http]
+    methods : [GET]
+
+
+plugins:
+- name: cors
+  config: 
+    origins:
+    - "*"
+    methods:
+    - GET
+    - POST
+    headers:
+    - Accept
+    - Accept-Version
+    - Content-Length
+    - Content-MD5
+    - Content-Type
+    - Date
+    - X-Auth-Token
+    exposed_headers:
+    - X-Auth-Token
+    credentials: true
+    max_age: 3600
+    preflight_continue: false

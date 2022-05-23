@@ -1,0 +1,18 @@
+overwrite: true
+hooks:
+  afterOneFileWrite:
+    - tslint --fix
+    - prettier --write --parser typescript
+schema: schema.graphql
+generates:
+  generated-maia.model.ts:
+    plugins:
+      - typescript
+config:
+  scalars:
+    Datetime: Date
+  declarationKind: interface
+  typesPrefix: I
+  namingConvention:
+    transformUnderscore: true
+  enumsAsTypes: true
